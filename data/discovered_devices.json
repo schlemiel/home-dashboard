@@ -1,0 +1,15 @@
+[
+  {
+    "id": "fd2777e8-3cc2-43e3-8ab5-9eb7e24d09d3",
+    "name": "172.21.0.1",
+    "ip": "172.21.0.1",
+    "mac": "c2:77:7e:e4:67:5e",
+    "vendor": "",
+    "device_type": "unknown",
+    "icon": "network",
+    "online": true,
+    "ping_ms": null,
+    "last_seen": "2026-08-12T19:25:39.192271+00:00",
+    "source": "scan"
+  }
+]

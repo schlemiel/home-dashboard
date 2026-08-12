@@ -1,0 +1,15 @@
+[
+  {
+    "id": "router-fritzbox",
+    "name": "FRITZ!Box",
+    "ip": "192.168.1.1",
+    "mac": "",
+    "vendor": "AVM",
+    "device_type": "router",
+    "icon": "router",
+    "online": true,
+    "ping_ms": null,
+    "last_seen": "2026-08-12T10:00:00+00:00",
+    "source": "manual"
+  }
+]

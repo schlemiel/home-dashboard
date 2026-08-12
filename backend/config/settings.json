@@ -1,0 +1,42 @@
+{
+  "dashboard": {
+    "title": "Udos Home Dashboard",
+    "port": 8088,
+    "location": "Borken"
+  },
+  "modules": {
+    "bookmarks": true,
+    "devices": true,
+    "weather": false,
+    "calendar": false,
+    "paperless": false,
+    "docker": false,
+    "proxmox": false,
+    "music": false,
+    "recipes": false
+  },
+  "bookmarks": {
+    "default_sort_by": "title",
+    "default_sort_order": "asc",
+    "categories": [
+      "Server",
+      "Cloud",
+      "Medien",
+      "Tools"
+    ]
+  },
+  "devices": {
+    "network_cidr": "192.168.1.0/24",
+    "scan_methods": [
+      "arp"
+    ],
+    "scan_timeout_sec": 2,
+    "auto_scan_on_load": false
+  },
+  "git": {
+    "auto_commit_json_changes": false,
+    "default_commit_message": "chore(dashboard): update data files",
+    "remote": "origin",
+    "branch": "main"
+  }
+}

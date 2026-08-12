@@ -1,0 +1,29 @@
+[
+  {
+    "id": "proxmox-main",
+    "title": "Proxmox",
+    "url": "https://proxmox.local:8006",
+    "category": "Server",
+    "tags": [
+      "homelab",
+      "vm"
+    ],
+    "favorite": true,
+    "source": "manual",
+    "created_at": "2026-08-12T10:00:00+00:00",
+    "updated_at": "2026-08-12T10:00:00+00:00"
+  },
+  {
+    "id": "fritzbox",
+    "title": "FRITZ!Box",
+    "url": "http://fritz.box",
+    "category": "Netzwerk",
+    "tags": [
+      "router"
+    ],
+    "favorite": true,
+    "source": "manual",
+    "created_at": "2026-08-12T10:00:00+00:00",
+    "updated_at": "2026-08-12T10:00:00+00:00"
+  }
+]

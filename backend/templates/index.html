@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <style>
+    :root {
+      --bg: #f6f8ef;
+      --ink: #1f2937;
+      --muted: #5b6470;
+      --card: #ffffffcc;
+      --stroke: #d2d9bf;
+      --accent: #2e6f40;
+      --accent-2: #e0a100;
+      --danger: #ba2d2d;
+      --glow: 0 10px 30px rgba(46, 111, 64, 0.18);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", "Noto Sans", sans-serif;
+      background:
+        radial-gradient(circle at 0% 0%, #d9eac7 0, transparent 40%),
+        radial-gradient(circle at 100% 100%, #f8deb8 0, transparent 35%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      background: linear-gradient(120deg, #225f35, #478b53);
+      color: #f7fff8;
+      border-radius: calc(var(--radius) + 4px);
+      padding: 24px;
+      box-shadow: var(--glow);
+      animation: rise-in .6s ease-out;
+    }
+
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+      letter-spacing: .01em;
+    }
+
+    .hero p {
+      margin: 0;
+      opacity: .92;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 1px solid var(--stroke);
+      background: #ffffffe0;
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: .2s ease;
+      font-weight: 600;
+    }
+
+    .tab:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(46, 111, 64, 0.12);
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .panel {
+      display: none;
+      gap: 12px;
+      animation: fade-in .35s ease;
+    }
+
+    .panel.active {
+      display: grid;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 180px 140px;
+      gap: 10px;
+    }
+
+    .controls input,
+    .controls select,
+    .admin-grid input,
+    .admin-grid textarea {
+      width: 100%;
+      border: 1px solid #c7d0b0;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      font: inherit;
+    }
+
+    .bookmark-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      border: 1px solid #dce5c4;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+      min-height: 110px;
+    }
+
+    .tile h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .tile small {
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e8f2dd;
+      color: #245e2f;
+      font-size: .75rem;
+      font-weight: 700;
+    }
+
+    .device-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .device {
+      border: 1px solid #dce5c4;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+    }
+
+    .status {
+      font-weight: 700;
+      font-size: .85rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+
+    .status.online {
+      background: #d8f3dc;
+      color: #14532d;
+    }
+
+    .status.offline {
+      background: #fde2e2;
+      color: #7f1d1d;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 13px;
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #f6f8ef;
+      color: #1f2937;
+      border: 1px solid var(--stroke);
+    }
+
+    button.warn {
+      background: var(--accent-2);
+      color: #322100;
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <section class="hero">
+      <h1 id="title">Home Dashboard</h1>
+      <p>Startseite für Bookmarks, Netzwerkgeräte und Admin-Workflows.</p>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="bookmarks">Lesezeichen</button>
+      <button class="tab" data-tab="devices">Geräte</button>
+      <button class="tab" data-tab="admin">Admin</button>
+    </nav>
+
+    <section class="panel active" id="panel-bookmarks">
+      <article class="card">
+        <h2>Lesezeichen</h2>
+        <div class="controls">
+          <input id="bookmark-search" type="search" placeholder="Suche nach Titel, URL, Tags ...">
+          <select id="bookmark-category"></select>
+          <select id="bookmark-sort">
+            <option value="title:asc">Titel A-Z</option>
+            <option value="title:desc">Titel Z-A</option>
+            <option value="category:asc">Kategorie A-Z</option>
+            <option value="updated_at:desc">Zuletzt geändert</option>
+          </select>
+        </div>
+        <div class="toolbar">
+          <button id="reload-bookmarks" class="secondary">Neu laden</button>
+        </div>
+      </article>
+      <article class="card">
+        <div id="bookmarks" class="bookmark-grid"></div>
+      </article>
+    </section>
+
+    <section class="panel" id="panel-devices">
+      <article class="card">
+        <h2>Geräte im Netzwerk</h2>
+        <p class="small">Kombiniert manuell gepflegte Geräte mit Scan-Ergebnissen (ARP/Nmap).</p>
+        <div class="toolbar">
+          <button id="scan-devices" class="warn">Netzwerk-Scan starten</button>
+          <button id="reload-devices" class="secondary">Neu laden</button>
+        </div>
+      </article>
+      <article class="card">
+        <div id="devices" class="device-list"></div>
+      </article>
+    </section>
+
+    <section class="panel" id="panel-admin">
+      <article class="card">
+        <h2>Admin</h2>
+        <p class="small">Konfiguration bearbeiten, Backup/Restore sowie Git-Operationen.</p>
+        <div class="admin-grid">
+          <div>
+            <label for="settings-json">Settings JSON</label>
+            <textarea id="settings-json" rows="14"></textarea>
+            <div class="toolbar">
+              <button id="save-settings">Settings speichern</button>
+            </div>
+          </div>
+          <div>
+            <label for="backup-json">Backup JSON</label>
+            <textarea id="backup-json" rows="14" placeholder="Export wird hier angezeigt oder Restore-JSON einfügen"></textarea>
+            <div class="toolbar">
+              <button id="export-backup" class="secondary">Backup exportieren</button>
+              <button id="restore-backup" class="warn">Backup einspielen</button>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button id="git-status" class="secondary">Git-Status</button>
+          <button id="git-commit">Git-Commit (Config/Data)</button>
+          <button id="git-push" class="secondary">Git-Push</button>
+          <button id="git-pull" class="secondary">Git-Pull</button>
+        </div>
+        <pre id="admin-output" class="small"></pre>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      bookmarks: [],
+      categories: [],
+      devices: [],
+      settings: null,
+    };
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function setOutput(payload) {
+      const output = document.getElementById('admin-output');
+      output.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    }
+
+    function activateTab(tab) {
+      document.querySelectorAll('.tab').forEach((node) => {
+        node.classList.toggle('active', node.dataset.tab === tab);
+      });
+
+      document.querySelectorAll('.panel').forEach((node) => {
+        node.classList.toggle('active', node.id === `panel-${tab}`);
+      });
+    }
+
+    async function loadSettings() {
+      state.settings = await api('/api/settings/');
+      document.getElementById('title').textContent = state.settings.dashboard?.title || 'Home Dashboard';
+      document.getElementById('settings-json').value = JSON.stringify(state.settings, null, 2);
+    }
+
+    async function loadCategories() {
+      const data = await api('/api/bookmarks/categories');
+      state.categories = data.categories || [];
+      const select = document.getElementById('bookmark-category');
+      const options = ['<option value="">Alle Kategorien</option>'].concat(
+        state.categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+      );
+      select.innerHTML = options.join('');
+    }
+
+    async function loadBookmarks() {
+      const q = document.getElementById('bookmark-search').value.trim();
+      const category = document.getElementById('bookmark-category').value;
+      const sort = document.getElementById('bookmark-sort').value;
+      const [sortBy, sortOrder] = sort.split(':');
+
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (category) params.set('category', category);
+      if (sortBy) params.set('sort_by', sortBy);
+      if (sortOrder) params.set('sort_order', sortOrder);
+
+      const data = await api(`/api/bookmarks/?${params.toString()}`);
+      state.bookmarks = data.items || [];
+
+      const root = document.getElementById('bookmarks');
+      if (state.bookmarks.length === 0) {
+        root.innerHTML = '<p class="small">Keine Lesezeichen gefunden.</p>';
+        return;
+      }
+
+      root.innerHTML = state.bookmarks
+        .map((item) => {
+          const tags = (item.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join(' ');
+          const star = item.favorite ? '★' : '';
+
+          return `
+            <article class="tile">
+              <h3>${escapeHtml(item.title)} ${star}</h3>
+              <small>${escapeHtml(item.category)}</small>
+              <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.url)}</a>
+              <div>${tags}</div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    async function loadDevices() {
+      const data = await api('/api/devices/');
+      state.devices = data.devices || [];
+      const root = document.getElementById('devices');
+
+      if (state.devices.length === 0) {
+        root.innerHTML = '<p class="small">Keine Geräte vorhanden.</p>';
+        return;
+      }
+
+      root.innerHTML = state.devices
+        .map((device) => {
+          const status = device.online ? 'online' : 'offline';
+          return `
+            <article class="device">
+              <div>
+                <strong>${escapeHtml(device.name)}</strong>
+                <div class="small">${escapeHtml(device.ip || '-')} · ${escapeHtml(device.mac || '-')} · ${escapeHtml(device.vendor || '-')}</div>
+              </div>
+              <span class="status ${status}">${status}</span>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    async function boot() {
+      document.querySelectorAll('.tab').forEach((node) => {
+        node.addEventListener('click', () => activateTab(node.dataset.tab));
+      });
+
+      document.getElementById('bookmark-search').addEventListener('input', () => loadBookmarks().catch((err) => setOutput(err.message)));
+      document.getElementById('bookmark-category').addEventListener('change', () => loadBookmarks().catch((err) => setOutput(err.message)));
+      document.getElementById('bookmark-sort').addEventListener('change', () => loadBookmarks().catch((err) => setOutput(err.message)));
+      document.getElementById('reload-bookmarks').addEventListener('click', () => loadBookmarks().catch((err) => setOutput(err.message)));
+
+      document.getElementById('reload-devices').addEventListener('click', () => loadDevices().catch((err) => setOutput(err.message)));
+      document.getElementById('scan-devices').addEventListener('click', async () => {
+        try {
+          const result = await api('/api/devices/scan', { method: 'POST' });
+          setOutput(result);
+          await loadDevices();
+        } catch (err) {
+          setOutput(err.message);
+        }
+      });
+
+      document.getElementById('save-settings').addEventListener('click', async () => {
+        try {
+          const raw = document.getElementById('settings-json').value;
+          const patch = JSON.parse(raw);
+          const result = await api('/api/settings/', {
+            method: 'PATCH',
+            body: JSON.stringify(patch),
+          });
+          setOutput(result);
+          await loadSettings();
+        } catch (err) {
+          setOutput(`Settings speichern fehlgeschlagen: ${err.message}`);
+        }
+      });
+
+      document.getElementById('export-backup').addEventListener('click', async () => {
+        try {
+          const payload = await api('/api/admin/backup/export');
+          document.getElementById('backup-json').value = JSON.stringify(payload, null, 2);
+          setOutput('Backup exportiert.');
+        } catch (err) {
+          setOutput(err.message);
+        }
+      });
+
+      document.getElementById('restore-backup').addEventListener('click', async () => {
+        try {
+          const raw = document.getElementById('backup-json').value;
+          const payload = JSON.parse(raw);
+          const result = await api('/api/admin/backup/restore', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          setOutput(result);
+          await loadSettings();
+          await loadBookmarks();
+          await loadDevices();
+        } catch (err) {
+          setOutput(`Restore fehlgeschlagen: ${err.message}`);
+        }
+      });
+
+      document.getElementById('git-status').addEventListener('click', async () => {
+        try {
+          const result = await api('/api/admin/status');
+          setOutput(result);
+        } catch (err) {
+          setOutput(err.message);
+        }
+      });
+
+      document.getElementById('git-commit').addEventListener('click', async () => {
+        try {
+          const result = await api('/api/admin/git/commit', {
+            method: 'POST',
+            body: JSON.stringify({ message: 'chore(dashboard): update json config and data' }),
+          });
+          setOutput(result);
+        } catch (err) {
+          setOutput(err.message);
+        }
+      });
+
+      document.getElementById('git-push').addEventListener('click', async () => {
+        try {
+          const result = await api('/api/admin/git/push', { method: 'POST', body: '{}' });
+          setOutput(result);
+        } catch (err) {
+          setOutput(err.message);
+        }
+      });
+
+      document.getElementById('git-pull').addEventListener('click', async () => {
+        try {
+          const result = await api('/api/admin/git/pull', { method: 'POST', body: '{}' });
+          setOutput(result);
+        } catch (err) {
+          setOutput(err.message);
+        }
+      });
+
+      await loadSettings();
+      await loadCategories();
+      await loadBookmarks();
+      await loadDevices();
+    }
+
+    boot().catch((err) => setOutput(err.message));
+  </script>
+</body>
+</html>

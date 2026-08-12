@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Udos Home Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        .section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        a {
+            color: #0077cc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Udos Home Dashboard</h1>
+
+    <div class="section">
+        <h2>Lesezeichen</h2>
+        <div id="bookmarks"></div>
+    </div>
+
+    <div class="section">
+        <h2>Geräte im Netzwerk</h2>
+        <div id="devices"></div>
+    </div>
+
+    <script>
+        async function loadBookmarks() {
+            const res = await fetch('/api/bookmarks/');
+            const data = await res.json();
+            const container = document.getElementById('bookmarks');
+
+            container.innerHTML = data.map(b =>
+                `<p><a href="${b.url}" target="_blank">${b.title}</a> (${b.category})</p>`
+            ).join('');
+        }
+
+        async function loadDevices() {
+            const res = await fetch('/api/devices/');
+            const data = await res.json();
+            const container = document.getElementById('devices');
+
+            container.innerHTML = JSON.stringify(data, null, 2);
+        }
+
+        loadBookmarks();
+        loadDevices();
+    </script>
+</body>
+</html>

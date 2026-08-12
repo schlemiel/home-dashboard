@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Data & runtime
+*.log
+*.sqlite3
+*.db
+
+# Docker local state
+*.pid
+
+# Project generated data
+backend/config/*.json
+!backend/config/settings.json

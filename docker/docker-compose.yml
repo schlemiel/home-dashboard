@@ -1,0 +1,16 @@
+#version: "3.9"
+
+services:
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: home-dashboard
+    ports:
+      - "8088:8088"
+    volumes:
+      - ..:/app
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
