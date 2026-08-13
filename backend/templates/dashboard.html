@@ -312,6 +312,85 @@
       font-weight: 600;
     }
 
+    .bookmark-tree {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+
+    .folder-node {
+      border: 1px solid #dce5c4;
+      border-radius: 10px;
+      background: #ffffffea;
+      overflow: hidden;
+    }
+
+    .folder-header {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #eef3df;
+      background: #f6faef;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #274434;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .folder-header .arrow {
+      width: 16px;
+      text-align: center;
+      font-size: .9rem;
+      color: #2f5f3e;
+    }
+
+    .folder-header .count {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    .folder-body {
+      padding: 8px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .bookmark-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 7px;
+    }
+
+    .bookmark-item {
+      border: 1px solid #e0e7ca;
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: #fff;
+      display: grid;
+      gap: 6px;
+    }
+
+    .bookmark-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .bookmark-title {
+      font-weight: 700;
+      color: #22303d;
+    }
+
     .device-list {
       display: grid;
       gap: 8px;
@@ -458,7 +537,7 @@
           </select>
           <select id="bookmark-group">
             <option value="none">Nicht gruppieren</option>
-            <option value="category">Gruppieren nach Ordner</option>
+            <option value="category" selected>Gruppieren nach Ordner</option>
             <option value="source">Gruppieren nach Quelle</option>
             <option value="favorite">Gruppieren nach Favoritenstatus</option>
           </select>
@@ -474,6 +553,8 @@
           </select>
           <button id="import-bookmarks" class="warn">Browser-Lesezeichen importieren</button>
           <button id="delete-all-bookmarks" class="danger">Alle Lesezeichen löschen</button>
+          <button id="expand-all-folders" class="secondary">Alle auf</button>
+          <button id="collapse-all-folders" class="secondary">Alle zu</button>
         </div>
         <div id="bookmark-stats" class="bookmark-stats"></div>
         <p class="small">Unterstützt Browser-Export als HTML (Netscape-Format) oder JSON-Array mit Feldern wie title/url/category. Unterordner bleiben als Ordnerpfad erhalten (z. B. Technik / Docker).</p>
@@ -538,6 +619,7 @@
       devices: [],
       settings: null,
       editingBookmarkId: null,
+      expandedFolders: {},
     };
 
     function escapeHtml(text) {
@@ -559,6 +641,60 @@
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean);
+    }
+
+    function splitCategoryPath(value) {
+      return String(value || 'Allgemein')
+        .split('/')
+        .map((part) => part.trim())
+        .filter(Boolean);
+    }
+
+    function ensureFolderExpanded(path, depth) {
+      if (Object.prototype.hasOwnProperty.call(state.expandedFolders, path)) {
+        return;
+      }
+      state.expandedFolders[path] = false;
+    }
+
+    function setAllFoldersExpanded(expanded) {
+      const folderPaths = new Set();
+
+      state.bookmarks.forEach((item) => {
+        const parts = splitCategoryPath(item.category);
+        let path = '';
+        parts.forEach((part) => {
+          path = path ? `${path} / ${part}` : part;
+          folderPaths.add(path);
+        });
+      });
+
+      folderPaths.forEach((path) => {
+        state.expandedFolders[path] = expanded;
+      });
+    }
+
+    function buildFolderTree(items) {
+      const root = { folders: new Map(), bookmarks: [] };
+
+      items.forEach((item) => {
+        const parts = splitCategoryPath(item.category);
+        let node = root;
+        let path = '';
+
+        parts.forEach((part, index) => {
+          path = path ? `${path} / ${part}` : part;
+          if (!node.folders.has(part)) {
+            node.folders.set(part, { path, folders: new Map(), bookmarks: [] });
+          }
+          ensureFolderExpanded(path, index);
+          node = node.folders.get(part);
+        });
+
+        node.bookmarks.push(item);
+      });
+
+      return root;
     }
 
     async function api(path, options = {}) {
@@ -690,6 +826,94 @@
         return;
       }
 
+      const renderBookmarkEditor = (item) => {
+        const tagString = (item.tags || []).join(', ');
+        const favoriteChecked = item.favorite ? 'checked' : '';
+
+        return `
+          <form class="bookmark-edit-form" data-bookmark-id="${escapeHtml(item.id)}">
+            <label>Titel
+              <input name="title" value="${escapeHtml(item.title || '')}" required>
+            </label>
+            <label>URL
+              <input name="url" type="url" value="${escapeHtml(item.url || '')}" required>
+            </label>
+            <div class="edit-grid">
+              <label>Ordnerpfad
+                <input name="category" value="${escapeHtml(item.category || 'Allgemein')}" placeholder="z. B. Technik / Docker">
+              </label>
+              <label>Tags (kommagetrennt)
+                <input name="tags" value="${escapeHtml(tagString)}">
+              </label>
+            </div>
+            <label class="favorite-field">
+              <input name="favorite" type="checkbox" ${favoriteChecked}>
+              Als Favorit markieren
+            </label>
+            <div class="tile-actions">
+              <button type="submit">Speichern</button>
+              <button type="button" class="secondary" data-action="cancel-edit" data-bookmark-id="${escapeHtml(item.id)}">Abbrechen</button>
+            </div>
+          </form>
+        `;
+      };
+
+      const renderBookmarkLeaf = (item) => {
+        const isEditing = state.editingBookmarkId === item.id;
+        const tags = (item.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join(' ');
+        const star = item.favorite ? ' ★' : '';
+        const source = item.source || 'unbekannt';
+
+        if (isEditing) {
+          return `<li class="bookmark-item">${renderBookmarkEditor(item)}</li>`;
+        }
+
+        return `
+          <li class="bookmark-item">
+            <div class="bookmark-row">
+              <span class="bookmark-title">${escapeHtml(item.title)}${star}</span>
+              <div class="tile-actions">
+                <a class="link-button" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">Oeffnen</a>
+                <button type="button" class="secondary" data-action="edit-bookmark" data-bookmark-id="${escapeHtml(item.id)}">Bearbeiten</button>
+              </div>
+            </div>
+            <div class="bookmark-meta">
+              <span class="badge source">Quelle: ${escapeHtml(source)}</span>
+              ${tags}
+            </div>
+          </li>
+        `;
+      };
+
+      const renderFolderNode = (folderName, node) => {
+        const folderPath = node.path;
+        const isExpanded = state.expandedFolders[folderPath] !== false;
+        const arrow = isExpanded ? '▾' : '▸';
+
+        const sortedFolders = Array.from(node.folders.entries()).sort(([a], [b]) => a.localeCompare(b, 'de'));
+        const folderHtml = sortedFolders.map(([name, child]) => renderFolderNode(name, child)).join('');
+        const bookmarkHtml = node.bookmarks.map((item) => renderBookmarkLeaf(item)).join('');
+        const hasContent = folderHtml || bookmarkHtml;
+
+        return `
+          <li class="folder-node">
+            <button type="button" class="folder-header" data-action="toggle-folder" data-folder-path="${escapeHtml(folderPath)}">
+              <span class="arrow">${arrow}</span>
+              <span>${escapeHtml(folderName)}</span>
+              <span class="count">${node.bookmarks.length}</span>
+            </button>
+            ${isExpanded && hasContent ? `<div class="folder-body"><ul class="bookmark-tree">${folderHtml}</ul>${bookmarkHtml ? `<ul class="bookmark-list">${bookmarkHtml}</ul>` : ''}</div>` : ''}
+          </li>
+        `;
+      };
+
+      const renderFolderTreeView = () => {
+        const tree = buildFolderTree(state.bookmarks);
+        const sortedRoots = Array.from(tree.folders.entries()).sort(([a], [b]) => a.localeCompare(b, 'de'));
+        root.className = 'bookmark-tree';
+        root.innerHTML = sortedRoots.map(([name, node]) => renderFolderNode(name, node)).join('');
+      };
+
       const renderBookmarkTile = (item) => {
         const isEditing = state.editingBookmarkId === item.id;
         const tags = (item.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join(' ');
@@ -758,6 +982,11 @@
         }
         return 'Alle Lesezeichen';
       };
+
+      if (groupBy === 'none' || groupBy === 'category') {
+        renderFolderTreeView();
+        return;
+      }
 
       if (groupBy === 'none') {
         root.className = 'bookmark-grid';
@@ -835,7 +1064,15 @@
         document.getElementById('bookmark-category').value = '';
         document.getElementById('bookmark-favorite').value = 'all';
         document.getElementById('bookmark-sort').value = 'title:asc';
-        document.getElementById('bookmark-group').value = 'none';
+        document.getElementById('bookmark-group').value = 'category';
+        loadBookmarks().catch((err) => setOutput(err.message));
+      });
+      document.getElementById('expand-all-folders').addEventListener('click', () => {
+        setAllFoldersExpanded(true);
+        loadBookmarks().catch((err) => setOutput(err.message));
+      });
+      document.getElementById('collapse-all-folders').addEventListener('click', () => {
+        setAllFoldersExpanded(false);
         loadBookmarks().catch((err) => setOutput(err.message));
       });
       document.getElementById('import-bookmarks').addEventListener('click', async () => {
@@ -864,6 +1101,14 @@
 
       document.getElementById('bookmarks').addEventListener('click', (event) => {
         const target = event.target;
+
+        const folderToggle = target.closest('[data-action="toggle-folder"]');
+        if (folderToggle) {
+          const folderPath = folderToggle.dataset.folderPath;
+          state.expandedFolders[folderPath] = !(state.expandedFolders[folderPath] !== false);
+          loadBookmarks().catch((err) => setOutput(err.message));
+          return;
+        }
 
         const cancelButton = target.closest('[data-action="cancel-edit"]');
         if (cancelButton) {

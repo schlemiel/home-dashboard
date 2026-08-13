@@ -25,13 +25,44 @@ def _normalize_tags(value: Any) -> list[str]:
     return []
 
 
+def _normalize_category_path(value: Any) -> str:
+    raw = str(value or "Allgemein").strip() or "Allgemein"
+    parts = [part.strip() for part in raw.split("/") if part.strip()]
+    if not parts:
+        return "Allgemein"
+
+    ignored_root_folders = {
+        "lesezeichenliste",
+        "lesezeichenleiste",
+        "favoriten",
+        "favoritenleiste",
+        "bookmarks",
+        "bookmarks bar",
+        "bookmarks toolbar",
+        "bookmarks menu",
+        "other bookmarks",
+        "mobile bookmarks",
+        "favorites",
+        "favorites bar",
+        "favorites toolbar",
+    }
+
+    # Browser exports sometimes wrap all entries in a synthetic root folder.
+    while parts and parts[0].lower() in ignored_root_folders:
+        parts.pop(0)
+
+    if not parts:
+        return "Allgemein"
+    return " / ".join(parts)
+
+
 def normalize_bookmark(raw: dict[str, Any]) -> dict[str, Any]:
     now = _now_iso()
     return {
         "id": raw.get("id") or str(uuid4()),
         "title": str(raw.get("title", "Unbenannt")).strip() or "Unbenannt",
         "url": str(raw.get("url", "")).strip(),
-        "category": str(raw.get("category", "Allgemein")).strip() or "Allgemein",
+        "category": _normalize_category_path(raw.get("category", "Allgemein")),
         "tags": _normalize_tags(raw.get("tags")),
         "favorite": bool(raw.get("favorite", False)),
         "source": str(raw.get("source", "manual")).strip() or "manual",
