@@ -19,6 +19,34 @@ def index():
     return render_template("index.html", title=title)
 
 
+@app.route("/dashboard")
+def dashboard():
+    settings = get_settings()
+    title = settings.get("dashboard", {}).get("title", "Home Dashboard")
+    return render_template("dashboard.html", title=title, initial_tab="bookmarks")
+
+
+@app.route("/bookmarks")
+def bookmarks_page():
+    settings = get_settings()
+    title = settings.get("dashboard", {}).get("title", "Home Dashboard")
+    return render_template("dashboard.html", title=title, initial_tab="bookmarks")
+
+
+@app.route("/devices")
+def devices_page():
+    settings = get_settings()
+    title = settings.get("dashboard", {}).get("title", "Home Dashboard")
+    return render_template("dashboard.html", title=title, initial_tab="devices")
+
+
+@app.route("/admin")
+def admin_page():
+    settings = get_settings()
+    title = settings.get("dashboard", {}).get("title", "Home Dashboard")
+    return render_template("dashboard.html", title=title, initial_tab="admin")
+
+
 @app.route("/api/health")
 def health():
     return jsonify({"status": "ok"})
