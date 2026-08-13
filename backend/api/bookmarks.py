@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from services.bookmarks_service import (
     create_bookmark,
+    delete_all_bookmarks,
     delete_bookmark,
     import_bookmarks_from_json,
     import_bookmarks_from_netscape_html,
@@ -62,6 +63,12 @@ def remove_bookmark(bookmark_id: str):
     if not deleted:
         return jsonify({"error": "Lesezeichen nicht gefunden"}), 404
     return jsonify({"status": "deleted"})
+
+
+@bookmarks_bp.route("/clear", methods=["DELETE"])
+def clear_bookmarks():
+    deleted_count = delete_all_bookmarks()
+    return jsonify({"status": "cleared", "deleted": deleted_count})
 
 
 @bookmarks_bp.route("/categories", methods=["GET"])

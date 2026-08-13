@@ -115,6 +115,12 @@ def delete_bookmark(bookmark_id: str) -> bool:
     return True
 
 
+def delete_all_bookmarks() -> int:
+    count = len(load_bookmarks())
+    save_bookmarks([])
+    return count
+
+
 def list_categories() -> list[str]:
     categories = sorted({item.get("category", "Allgemein") for item in load_bookmarks()})
     return categories
@@ -129,35 +135,57 @@ class BookmarkImportResult:
 class NetscapeBookmarkParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
-        self.current_category = "Importiert"
         self.in_h3 = False
         self.in_a = False
+        self.current_h3_text = ""
+        self.pending_folder_name: str | None = None
+        self.folder_stack: list[str] = []
         self.current_link: dict[str, str] = {}
         self.items: list[dict[str, Any]] = []
 
+    def _category_path(self) -> str:
+        if not self.folder_stack:
+            return "Importiert"
+        return " / ".join(self.folder_stack)
+
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attrs_dict = {k.lower(): (v or "") for k, v in attrs}
+        tag_name = tag.lower()
 
-        if tag.lower() == "h3":
+        if tag_name == "h3":
             self.in_h3 = True
+            self.current_h3_text = ""
 
-        if tag.lower() == "a":
+        if tag_name == "dl" and self.pending_folder_name:
+            self.folder_stack.append(self.pending_folder_name)
+            self.pending_folder_name = None
+
+        if tag_name == "a":
             self.in_a = True
             self.current_link = {
                 "url": attrs_dict.get("href", "").strip(),
                 "title": "",
-                "category": self.current_category,
+                "category": self._category_path(),
                 "source": "browser-export",
             }
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.lower() == "h3":
+        tag_name = tag.lower()
+
+        if tag_name == "h3":
             self.in_h3 = False
-        if tag.lower() == "a":
+            folder_name = self.current_h3_text.strip()
+            self.pending_folder_name = folder_name or None
+            self.current_h3_text = ""
+
+        if tag_name == "a":
             self.in_a = False
             if self.current_link.get("url"):
                 self.items.append(normalize_bookmark(self.current_link))
             self.current_link = {}
+
+        if tag_name == "dl" and self.folder_stack:
+            self.folder_stack.pop()
 
     def handle_data(self, data: str) -> None:
         value = data.strip()
@@ -165,7 +193,7 @@ class NetscapeBookmarkParser(HTMLParser):
             return
 
         if self.in_h3:
-            self.current_category = value
+            self.current_h3_text = f"{self.current_h3_text}{value}"
 
         if self.in_a and self.current_link is not None:
             self.current_link["title"] = value

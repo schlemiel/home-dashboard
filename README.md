@@ -5,6 +5,7 @@ A small Flask-based home dashboard for bookmarks, devices, and local services.
 ## Features
 
 - Bookmark management
+- Browser bookmark import (HTML/Netscape export and JSON)
 - Device discovery and network scanning
 - Settings UI and JSON-backed configuration
 - Docker-ready packaging
@@ -27,7 +28,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-The app is available on http://localhost:8088.
+The app is available on <http://localhost:8088>.
 
 ## Project structure
 

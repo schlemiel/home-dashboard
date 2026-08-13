@@ -113,6 +113,12 @@
       gap: 10px;
     }
 
+    .controls-extended {
+      margin-top: 10px;
+      grid-template-columns: 220px 220px auto;
+      align-items: center;
+    }
+
     .controls input,
     .controls select,
     .admin-grid input,
@@ -141,9 +147,89 @@
       min-height: 110px;
     }
 
+    .tile-view {
+      cursor: pointer;
+    }
+
     .tile h3 {
       margin: 0;
       font-size: 1rem;
+    }
+
+    .tile a {
+      color: #1d4f8f;
+      text-decoration: none;
+      word-break: break-word;
+    }
+
+    .tile a:hover {
+      text-decoration: underline;
+    }
+
+    .tile-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--stroke);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: .85rem;
+      font-weight: 700;
+      color: #1f2937;
+      text-decoration: none;
+      background: #f6f8ef;
+    }
+
+    .tile .tile-actions button {
+      padding: 8px 10px;
+      font-size: .85rem;
+    }
+
+    .bookmark-edit-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bookmark-edit-form label {
+      font-size: .82rem;
+      color: #42505d;
+      font-weight: 700;
+    }
+
+    .bookmark-edit-form input,
+    .bookmark-edit-form select {
+      width: 100%;
+      border: 1px solid #c7d0b0;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      font: inherit;
+    }
+
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .favorite-field {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: .9rem;
+      color: #2c3a46;
+    }
+
+    .favorite-field input {
+      width: auto;
+      margin: 0;
     }
 
     .tile small {
@@ -158,6 +244,60 @@
       color: #245e2f;
       font-size: .75rem;
       font-weight: 700;
+    }
+
+    .badge.source {
+      background: #edf2ff;
+      color: #2b3f7a;
+    }
+
+    .bookmark-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .bookmark-groups {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bookmark-group {
+      border: 1px solid #dce5c4;
+      border-radius: 12px;
+      background: #fcfff7;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .group-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      border-bottom: 1px dashed #d2d9bf;
+      padding-bottom: 8px;
+    }
+
+    .group-head h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #254f33;
+    }
+
+    .group-count {
+      color: var(--muted);
+      font-size: .85rem;
+      font-weight: 700;
+    }
+
+    .bookmark-stats {
+      margin-top: 8px;
+      font-size: .9rem;
+      color: #2f4f3a;
+      font-weight: 600;
     }
 
     .device-list {
@@ -259,7 +399,13 @@
       .controls {
         grid-template-columns: 1fr;
       }
+      .controls-extended {
+        grid-template-columns: 1fr;
+      }
       .admin-grid {
+        grid-template-columns: 1fr;
+      }
+      .edit-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -287,13 +433,37 @@
           <select id="bookmark-sort">
             <option value="title:asc">Titel A-Z</option>
             <option value="title:desc">Titel Z-A</option>
-            <option value="category:asc">Kategorie A-Z</option>
+            <option value="category:asc">Ordner A-Z</option>
             <option value="updated_at:desc">Zuletzt geändert</option>
           </select>
         </div>
+        <div class="controls controls-extended">
+          <select id="bookmark-favorite">
+            <option value="all">Alle</option>
+            <option value="only">Nur Favoriten</option>
+            <option value="exclude">Ohne Favoriten</option>
+          </select>
+          <select id="bookmark-group">
+            <option value="none">Nicht gruppieren</option>
+            <option value="category">Gruppieren nach Ordner</option>
+            <option value="source">Gruppieren nach Quelle</option>
+            <option value="favorite">Gruppieren nach Favoritenstatus</option>
+          </select>
+          <button id="clear-bookmark-filters" class="secondary">Filter zurücksetzen</button>
+        </div>
         <div class="toolbar">
           <button id="reload-bookmarks" class="secondary">Neu laden</button>
+          <input id="bookmark-import-file" type="file" accept=".html,.htm,.json,text/html,application/json">
+          <select id="bookmark-import-type">
+            <option value="auto">Importformat automatisch erkennen</option>
+            <option value="netscape-html">Browser-Export (HTML)</option>
+            <option value="json">JSON-Liste</option>
+          </select>
+          <button id="import-bookmarks" class="warn">Browser-Lesezeichen importieren</button>
+          <button id="delete-all-bookmarks" class="danger">Alle Lesezeichen löschen</button>
         </div>
+        <div id="bookmark-stats" class="bookmark-stats"></div>
+        <p class="small">Unterstützt Browser-Export als HTML (Netscape-Format) oder JSON-Array mit Feldern wie title/url/category. Unterordner bleiben als Ordnerpfad erhalten (z. B. Technik / Docker).</p>
       </article>
       <article class="card">
         <div id="bookmarks" class="bookmark-grid"></div>
@@ -352,6 +522,7 @@
       categories: [],
       devices: [],
       settings: null,
+      editingBookmarkId: null,
     };
 
     function escapeHtml(text) {
@@ -368,6 +539,13 @@
       output.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
     }
 
+    function parseTags(value) {
+      return String(value || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
     async function api(path, options = {}) {
       const response = await fetch(path, {
         headers: {
@@ -378,10 +556,66 @@
       });
 
       if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`);
+        let errorMessage = `${response.status} ${response.statusText}`;
+        try {
+          const errorPayload = await response.json();
+          if (errorPayload && typeof errorPayload.error === 'string' && errorPayload.error.trim()) {
+            errorMessage = errorPayload.error;
+          }
+        } catch (_) {
+          // Ignore JSON parse errors and fall back to status text.
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();
+    }
+
+    function detectImportType(fileName, selectedType) {
+      if (selectedType && selectedType !== 'auto') {
+        return selectedType;
+      }
+
+      const normalized = String(fileName || '').toLowerCase();
+      if (normalized.endsWith('.html') || normalized.endsWith('.htm')) {
+        return 'netscape-html';
+      }
+      return 'json';
+    }
+
+    async function importBookmarksFromFile() {
+      const fileInput = document.getElementById('bookmark-import-file');
+      const typeSelect = document.getElementById('bookmark-import-type');
+      const file = fileInput.files && fileInput.files[0];
+
+      if (!file) {
+        setOutput('Bitte zuerst eine Export-Datei auswählen.');
+        return;
+      }
+
+      const importType = detectImportType(file.name, typeSelect.value);
+      const raw = await file.text();
+      let payload;
+
+      if (importType === 'netscape-html') {
+        payload = { type: 'netscape-html', raw };
+      } else {
+        const parsed = JSON.parse(raw);
+        const items = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : null);
+        if (!items) {
+          throw new Error('JSON muss ein Array sein oder ein Objekt mit Feld "items".');
+        }
+        payload = { type: 'json', items };
+      }
+
+      const result = await api('/api/bookmarks/import', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      setOutput(`Import abgeschlossen: ${result.imported || 0} importiert, ${result.skipped || 0} übersprungen.`);
+      await loadCategories();
+      await loadBookmarks();
     }
 
     function activateTab(tab) {
@@ -404,7 +638,7 @@
       const data = await api('/api/bookmarks/categories');
       state.categories = data.categories || [];
       const select = document.getElementById('bookmark-category');
-      const options = ['<option value="">Alle Kategorien</option>'].concat(
+      const options = ['<option value="">Alle Ordner</option>'].concat(
         state.categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
       );
       select.innerHTML = options.join('');
@@ -414,35 +648,129 @@
       const q = document.getElementById('bookmark-search').value.trim();
       const category = document.getElementById('bookmark-category').value;
       const sort = document.getElementById('bookmark-sort').value;
+      const favoriteMode = document.getElementById('bookmark-favorite').value;
+      const groupBy = document.getElementById('bookmark-group').value;
       const [sortBy, sortOrder] = sort.split(':');
 
       const params = new URLSearchParams();
       if (q) params.set('q', q);
       if (category) params.set('category', category);
+      if (favoriteMode === 'only') params.set('favorite', 'true');
+      if (favoriteMode === 'exclude') params.set('favorite', 'false');
       if (sortBy) params.set('sort_by', sortBy);
       if (sortOrder) params.set('sort_order', sortOrder);
 
       const data = await api(`/api/bookmarks/?${params.toString()}`);
       state.bookmarks = data.items || [];
+      if (state.editingBookmarkId && !state.bookmarks.some((item) => item.id === state.editingBookmarkId)) {
+        state.editingBookmarkId = null;
+      }
 
       const root = document.getElementById('bookmarks');
+      const stats = document.getElementById('bookmark-stats');
+      stats.textContent = `${state.bookmarks.length} Lesezeichen angezeigt`;
+
       if (state.bookmarks.length === 0) {
         root.innerHTML = '<p class="small">Keine Lesezeichen gefunden.</p>';
         return;
       }
 
-      root.innerHTML = state.bookmarks
-        .map((item) => {
-          const tags = (item.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join(' ');
-          const star = item.favorite ? '★' : '';
+      const renderBookmarkTile = (item) => {
+        const isEditing = state.editingBookmarkId === item.id;
+        const tags = (item.tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join(' ');
+        const star = item.favorite ? '★' : '';
+        const source = item.source || 'unbekannt';
+
+        if (isEditing) {
+          const tagString = (item.tags || []).join(', ');
+          const favoriteChecked = item.favorite ? 'checked' : '';
 
           return `
-            <article class="tile">
-              <h3>${escapeHtml(item.title)} ${star}</h3>
-              <small>${escapeHtml(item.category)}</small>
-              <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.url)}</a>
-              <div>${tags}</div>
+            <article class="tile" data-bookmark-id="${escapeHtml(item.id)}">
+              <form class="bookmark-edit-form" data-bookmark-id="${escapeHtml(item.id)}">
+                <label>Titel
+                  <input name="title" value="${escapeHtml(item.title || '')}" required>
+                </label>
+                <label>URL
+                  <input name="url" type="url" value="${escapeHtml(item.url || '')}" required>
+                </label>
+                <div class="edit-grid">
+                  <label>Ordnerpfad
+                    <input name="category" value="${escapeHtml(item.category || 'Allgemein')}" placeholder="z. B. Technik / Docker">
+                  </label>
+                  <label>Tags (kommagetrennt)
+                    <input name="tags" value="${escapeHtml(tagString)}">
+                  </label>
+                </div>
+                <label class="favorite-field">
+                  <input name="favorite" type="checkbox" ${favoriteChecked}>
+                  Als Favorit markieren
+                </label>
+                <div class="tile-actions">
+                  <button type="submit">Speichern</button>
+                  <button type="button" class="secondary" data-action="cancel-edit" data-bookmark-id="${escapeHtml(item.id)}">Abbrechen</button>
+                </div>
+              </form>
             </article>
+          `;
+        }
+
+        return `
+          <article class="tile tile-view" data-bookmark-id="${escapeHtml(item.id)}">
+            <h3>${escapeHtml(item.title)} ${star}</h3>
+            <div class="bookmark-meta">
+              <span class="badge">${escapeHtml(item.category || 'Allgemein')}</span>
+              <span class="badge source">Quelle: ${escapeHtml(source)}</span>
+            </div>
+            <div>${tags}</div>
+            <div class="tile-actions">
+              <a class="link-button" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">Oeffnen</a>
+              <button type="button" class="secondary" data-action="edit-bookmark" data-bookmark-id="${escapeHtml(item.id)}">Bearbeiten</button>
+            </div>
+          </article>
+        `;
+      };
+
+      const getGroupName = (item) => {
+        if (groupBy === 'category') {
+          return item.category || 'Allgemein';
+        }
+        if (groupBy === 'source') {
+          return item.source || 'Unbekannte Quelle';
+        }
+        if (groupBy === 'favorite') {
+          return item.favorite ? 'Favoriten' : 'Andere';
+        }
+        return 'Alle Lesezeichen';
+      };
+
+      if (groupBy === 'none') {
+        root.className = 'bookmark-grid';
+        root.innerHTML = state.bookmarks.map(renderBookmarkTile).join('');
+        return;
+      }
+
+      const groups = new Map();
+      state.bookmarks.forEach((item) => {
+        const key = getGroupName(item);
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(item);
+      });
+
+      root.className = 'bookmark-groups';
+      root.innerHTML = Array.from(groups.entries())
+        .map(([groupName, items]) => {
+          const tiles = items.map(renderBookmarkTile).join('');
+          return `
+            <section class="bookmark-group">
+              <header class="group-head">
+                <h3>${escapeHtml(groupName)}</h3>
+                <span class="group-count">${items.length} Einträge</span>
+              </header>
+              <div class="bookmark-grid">${tiles}</div>
+            </section>
           `;
         })
         .join('');
@@ -481,8 +809,102 @@
 
       document.getElementById('bookmark-search').addEventListener('input', () => loadBookmarks().catch((err) => setOutput(err.message)));
       document.getElementById('bookmark-category').addEventListener('change', () => loadBookmarks().catch((err) => setOutput(err.message)));
+      document.getElementById('bookmark-favorite').addEventListener('change', () => loadBookmarks().catch((err) => setOutput(err.message)));
+      document.getElementById('bookmark-group').addEventListener('change', () => loadBookmarks().catch((err) => setOutput(err.message)));
       document.getElementById('bookmark-sort').addEventListener('change', () => loadBookmarks().catch((err) => setOutput(err.message)));
       document.getElementById('reload-bookmarks').addEventListener('click', () => loadBookmarks().catch((err) => setOutput(err.message)));
+      document.getElementById('clear-bookmark-filters').addEventListener('click', () => {
+        document.getElementById('bookmark-search').value = '';
+        document.getElementById('bookmark-category').value = '';
+        document.getElementById('bookmark-favorite').value = 'all';
+        document.getElementById('bookmark-sort').value = 'title:asc';
+        document.getElementById('bookmark-group').value = 'none';
+        loadBookmarks().catch((err) => setOutput(err.message));
+      });
+      document.getElementById('import-bookmarks').addEventListener('click', async () => {
+        try {
+          await importBookmarksFromFile();
+        } catch (err) {
+          setOutput(`Import fehlgeschlagen: ${err.message}`);
+        }
+      });
+      document.getElementById('delete-all-bookmarks').addEventListener('click', async () => {
+        const confirmed = window.confirm('Wirklich alle Lesezeichen löschen? Diese Aktion kann nicht rückgängig gemacht werden.');
+        if (!confirmed) {
+          return;
+        }
+
+        try {
+          const result = await api('/api/bookmarks/clear', { method: 'DELETE' });
+          state.editingBookmarkId = null;
+          setOutput(`Alle Lesezeichen gelöscht. Entfernte Einträge: ${result.deleted || 0}`);
+          await loadCategories();
+          await loadBookmarks();
+        } catch (err) {
+          setOutput(`Löschen fehlgeschlagen: ${err.message}`);
+        }
+      });
+
+      document.getElementById('bookmarks').addEventListener('click', (event) => {
+        const target = event.target;
+
+        const cancelButton = target.closest('[data-action="cancel-edit"]');
+        if (cancelButton) {
+          state.editingBookmarkId = null;
+          loadBookmarks().catch((err) => setOutput(err.message));
+          return;
+        }
+
+        const editButton = target.closest('[data-action="edit-bookmark"]');
+        if (editButton) {
+          event.stopPropagation();
+          state.editingBookmarkId = editButton.dataset.bookmarkId;
+          loadBookmarks().catch((err) => setOutput(err.message));
+          return;
+        }
+
+        if (target.closest('a') || target.closest('button') || target.closest('input') || target.closest('form')) {
+          return;
+        }
+
+        const tile = target.closest('.tile-view[data-bookmark-id]');
+        if (tile) {
+          state.editingBookmarkId = tile.dataset.bookmarkId;
+          loadBookmarks().catch((err) => setOutput(err.message));
+        }
+      });
+
+      document.getElementById('bookmarks').addEventListener('submit', async (event) => {
+        const form = event.target.closest('.bookmark-edit-form');
+        if (!form) {
+          return;
+        }
+
+        event.preventDefault();
+        const bookmarkId = form.dataset.bookmarkId;
+
+        try {
+          const payload = {
+            title: form.elements.title.value.trim(),
+            url: form.elements.url.value.trim(),
+            category: form.elements.category.value.trim() || 'Allgemein',
+            tags: parseTags(form.elements.tags.value),
+            favorite: Boolean(form.elements.favorite.checked),
+          };
+
+          await api(`/api/bookmarks/${encodeURIComponent(bookmarkId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+
+          state.editingBookmarkId = null;
+          setOutput('Lesezeichen aktualisiert.');
+          await loadCategories();
+          await loadBookmarks();
+        } catch (err) {
+          setOutput(`Speichern fehlgeschlagen: ${err.message}`);
+        }
+      });
 
       document.getElementById('reload-devices').addEventListener('click', () => loadDevices().catch((err) => setOutput(err.message)));
       document.getElementById('scan-devices').addEventListener('click', async () => {
