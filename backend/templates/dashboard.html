@@ -125,6 +125,17 @@
       gap: 10px;
     }
 
+    .bookmark-config-panel {
+      display: none;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .bookmark-config-panel.open {
+      display: grid;
+      animation: fade-in .2s ease;
+    }
+
     .controls-extended {
       margin-top: 10px;
       grid-template-columns: 220px 220px auto;
@@ -519,45 +530,50 @@
     <section class="panel active" id="panel-bookmarks">
       <article class="card">
         <h2>Lesezeichen</h2>
-        <div class="controls">
-          <input id="bookmark-search" type="search" placeholder="Suche nach Titel, URL, Tags ...">
-          <select id="bookmark-category"></select>
-          <select id="bookmark-sort">
-            <option value="title:asc">Titel A-Z</option>
-            <option value="title:desc">Titel Z-A</option>
-            <option value="category:asc">Ordner A-Z</option>
-            <option value="updated_at:desc">Zuletzt geändert</option>
-          </select>
-        </div>
-        <div class="controls controls-extended">
-          <select id="bookmark-favorite">
-            <option value="all">Alle</option>
-            <option value="only">Nur Favoriten</option>
-            <option value="exclude">Ohne Favoriten</option>
-          </select>
-          <select id="bookmark-group">
-            <option value="none">Nicht gruppieren</option>
-            <option value="category" selected>Gruppieren nach Ordner</option>
-            <option value="source">Gruppieren nach Quelle</option>
-            <option value="favorite">Gruppieren nach Favoritenstatus</option>
-          </select>
-          <button id="clear-bookmark-filters" class="secondary">Filter zurücksetzen</button>
-        </div>
         <div class="toolbar">
-          <button id="reload-bookmarks" class="secondary">Neu laden</button>
-          <input id="bookmark-import-file" type="file" accept=".html,.htm,.json,text/html,application/json">
-          <select id="bookmark-import-type">
-            <option value="auto">Importformat automatisch erkennen</option>
-            <option value="netscape-html">Browser-Export (HTML)</option>
-            <option value="json">JSON-Liste</option>
-          </select>
-          <button id="import-bookmarks" class="warn">Browser-Lesezeichen importieren</button>
-          <button id="delete-all-bookmarks" class="danger">Alle Lesezeichen löschen</button>
-          <button id="expand-all-folders" class="secondary">Alle auf</button>
-          <button id="collapse-all-folders" class="secondary">Alle zu</button>
+          <button id="toggle-bookmark-controls" class="secondary" aria-expanded="false" aria-controls="bookmark-config-panel">Einstellungen anzeigen</button>
         </div>
-        <div id="bookmark-stats" class="bookmark-stats"></div>
-        <p class="small">Unterstützt Browser-Export als HTML (Netscape-Format) oder JSON-Array mit Feldern wie title/url/category. Unterordner bleiben als Ordnerpfad erhalten (z. B. Technik / Docker).</p>
+        <div id="bookmark-config-panel" class="bookmark-config-panel" aria-hidden="true">
+          <div class="controls">
+            <input id="bookmark-search" type="search" placeholder="Suche nach Titel, URL, Tags ...">
+            <select id="bookmark-category"></select>
+            <select id="bookmark-sort">
+              <option value="title:asc">Titel A-Z</option>
+              <option value="title:desc">Titel Z-A</option>
+              <option value="category:asc">Ordner A-Z</option>
+              <option value="updated_at:desc">Zuletzt geändert</option>
+            </select>
+          </div>
+          <div class="controls controls-extended">
+            <select id="bookmark-favorite">
+              <option value="all">Alle</option>
+              <option value="only">Nur Favoriten</option>
+              <option value="exclude">Ohne Favoriten</option>
+            </select>
+            <select id="bookmark-group">
+              <option value="none">Nicht gruppieren</option>
+              <option value="category" selected>Gruppieren nach Ordner</option>
+              <option value="source">Gruppieren nach Quelle</option>
+              <option value="favorite">Gruppieren nach Favoritenstatus</option>
+            </select>
+            <button id="clear-bookmark-filters" class="secondary">Filter zurücksetzen</button>
+          </div>
+          <div class="toolbar">
+            <button id="reload-bookmarks" class="secondary">Neu laden</button>
+            <input id="bookmark-import-file" type="file" accept=".html,.htm,.json,text/html,application/json">
+            <select id="bookmark-import-type">
+              <option value="auto">Importformat automatisch erkennen</option>
+              <option value="netscape-html">Browser-Export (HTML)</option>
+              <option value="json">JSON-Liste</option>
+            </select>
+            <button id="import-bookmarks" class="warn">Browser-Lesezeichen importieren</button>
+            <button id="delete-all-bookmarks" class="danger">Alle Lesezeichen löschen</button>
+            <button id="expand-all-folders" class="secondary">Alle auf</button>
+            <button id="collapse-all-folders" class="secondary">Alle zu</button>
+          </div>
+          <div id="bookmark-stats" class="bookmark-stats"></div>
+          <p class="small">Unterstützt Browser-Export als HTML (Netscape-Format) oder JSON-Array mit Feldern wie title/url/category. Unterordner bleiben als Ordnerpfad erhalten (z. B. Technik / Docker).</p>
+        </div>
       </article>
       <article class="card">
         <div id="bookmarks" class="bookmark-grid"></div>
@@ -1048,6 +1064,15 @@
 
     async function boot() {
       activateTab(initialTab);
+
+      const bookmarkConfigPanel = document.getElementById('bookmark-config-panel');
+      const toggleBookmarkControlsButton = document.getElementById('toggle-bookmark-controls');
+      toggleBookmarkControlsButton.addEventListener('click', () => {
+        const isOpen = bookmarkConfigPanel.classList.toggle('open');
+        bookmarkConfigPanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        toggleBookmarkControlsButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggleBookmarkControlsButton.textContent = isOpen ? 'Einstellungen schließen' : 'Einstellungen anzeigen';
+      });
 
       document.querySelectorAll('.tab').forEach((node) => {
         node.addEventListener('click', () => activateTab(node.dataset.tab));
