@@ -18,6 +18,38 @@ A small Flask-based home dashboard for bookmarks, devices, and local services.
 docker compose -f docker/docker-compose.yml up --build
 ```
 
+Optional: create a local env file first:
+
+```bash
+cp docker/.env.example docker/.env
+```
+
+Then run with custom values from `docker/.env`.
+
+### Integrate into an existing Docker stack
+
+If you already have multiple containers running in one shared Docker network, connect the dashboard to that network.
+
+1. Check your existing network name:
+
+```bash
+docker network ls
+```
+
+2. Set the network in `docker/.env`:
+
+```env
+DASHBOARD_NETWORK=your-existing-network
+```
+
+3. Start the dashboard:
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --build
+```
+
+The app will be available on `http://localhost:8088` (or your configured `DASHBOARD_PORT`).
+
 ### Directly with Python
 
 ```bash
