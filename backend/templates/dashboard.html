@@ -460,6 +460,18 @@
       background: var(--accent-2);
     }
 
+    .script-output {
+      margin: 0;
+      padding: 12px;
+      max-height: 420px;
+      overflow: auto;
+      background: #1f2937;
+      color: #f3f4f6;
+      border-radius: 8px;
+      font: .78rem/1.45 "SFMono-Regular", Consolas, monospace;
+      white-space: pre;
+    }
+
     .device {
       border: 1px solid #dce5c4;
       border-radius: 12px;
@@ -642,6 +654,14 @@
       <article class="card">
         <h2>Festplatten und Mounts</h2>
         <div id="system-mounts"></div>
+      </article>
+      <article class="card">
+        <h2>Storage-Report</h2>
+        <pre id="storage-report-output" class="script-output"></pre>
+      </article>
+      <article class="card">
+        <h2>Storage-Topologie</h2>
+        <pre id="storage-topology-output" class="script-output"></pre>
       </article>
       {% endif %}
       <article class="card">
@@ -1132,6 +1152,8 @@
       const data = await api('/api/system/');
       const memory = data.memory || {};
       const load = (data.load_average || []).join(' / ');
+      document.getElementById('storage-report-output').textContent = data.storage_report_output || 'Keine Ausgabe verfügbar.';
+      document.getElementById('storage-topology-output').textContent = data.storage_topology_output || 'Keine Ausgabe verfügbar.';
       document.getElementById('system-summary').innerHTML = `
         <div class="system-stat"><span class="small">Hostname</span><strong>${escapeHtml(data.hostname || '-')}</strong></div>
         <div class="system-stat"><span class="small">CPU-Kerne</span><strong>${escapeHtml(data.cpu_count || 0)}</strong></div>

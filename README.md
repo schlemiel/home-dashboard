@@ -8,49 +8,11 @@ A small Flask-based home dashboard for bookmarks, devices, and local services.
 - Browser bookmark import (HTML/Netscape export and JSON)
 - Device discovery and network scanning
 - Settings UI and JSON-backed configuration
-- Docker-ready packaging
+- Production deployment via Gunicorn + systemd
 
 ## Run locally
 
-### With Docker
-
-```bash
-docker compose -f docker/docker-compose.yml up --build
-```
-
-Optional: create a local env file first:
-
-```bash
-cp docker/.env.example docker/.env
-```
-
-Then run with custom values from `docker/.env`.
-
-### Integrate into an existing Docker stack
-
-If you already have multiple containers running in one shared Docker network, connect the dashboard to that network.
-
-1. Check your existing network name:
-
-```bash
-docker network ls
-```
-
-2. Set the network in `docker/.env`:
-
-```env
-DASHBOARD_NETWORK=your-existing-network
-```
-
-3. Start the dashboard:
-
-```bash
-docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --build
-```
-
-The production instance uses `http://localhost:8088`. The Dev Compose setup in this repository uses `http://localhost:8089` and the container name `home-dashboard-dev`.
-
-### Directly with Python
+### Directly with Python (development)
 
 ```bash
 cd backend
@@ -61,6 +23,40 @@ python app.py
 ```
 
 The app is available on <http://localhost:8088>.
+
+### Production deployment (Gunicorn + systemd)
+
+Use `setup.sh` to deploy the app into a production folder with its own
+virtualenv, Gunicorn, and a systemd unit:
+
+```bash
+./setup.sh /opt/home-dashboard
+```
+
+This creates in the target folder:
+
+- `backend/`, `data/`, `scripts/` — application files (existing `data/` is preserved)
+- `venv/` — Python virtualenv with Flask and Gunicorn installed
+- `home-dashboard.service` — systemd unit running `gunicorn -c gunicorn.conf.py app:app`
+
+If run as root (e.g. via `sudo ./setup.sh ...`), the unit is installed to
+`/etc/systemd/system/` and started automatically. Otherwise, install it manually:
+
+```bash
+sudo cp /opt/home-dashboard/home-dashboard.service /etc/systemd/system/home-dashboard.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now home-dashboard.service
+```
+
+Check status and logs:
+
+```bash
+systemctl status home-dashboard
+journalctl -u home-dashboard -f
+```
+
+The Gunicorn bind port is read from `backend/config/settings.json`
+(`dashboard.port`, default `8088`).
 
 ## Storage-Übersicht als Skript
 
@@ -76,9 +72,9 @@ unter anderem SATA, NVMe, USB, RAID, LVM, NFS und SMB.
 
 ## Project structure
 
-- `backend/` — Flask application and API modules
+- `backend/` — Flask application, API modules, and Gunicorn config
 - `data/` — persisted JSON data files
-- `docker/` — Docker configuration
+- `setup.sh` — deploys the app to a production folder with venv + systemd
 
 ## Notes
 

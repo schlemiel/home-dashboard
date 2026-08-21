@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 TOPOLOGY_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "storage_topology.sh"
+REPORT_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "storage-report.sh"
 
 
 def _read_meminfo() -> dict[str, int]:
@@ -66,6 +67,25 @@ def _storage_topology() -> list[dict[str, str]]:
     except (OSError, ValueError, subprocess.SubprocessError):
         return []
     return [item for item in payload if isinstance(item, dict)]
+
+
+def _script_output(script: Path) -> str:
+    if not script.exists():
+        return f"Skript nicht gefunden: {script.name}"
+    try:
+        result = subprocess.run(
+            [str(script)],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        return f"Skript konnte nicht ausgeführt werden: {error}"
+    output = result.stdout.strip()
+    if result.returncode != 0:
+        return output or result.stderr.strip() or f"Skript beendet mit Status {result.returncode}"
+    return output or "Keine Ausgabe."
 
 
 def _block_device_for(source: str) -> dict[str, str]:
@@ -169,4 +189,6 @@ def get_system_overview() -> dict[str, Any]:
         },
         "mounts": _mounts(),
         "storage_topology": _storage_topology(),
+        "storage_report_output": _script_output(REPORT_SCRIPT),
+        "storage_topology_output": _script_output(TOPOLOGY_SCRIPT),
     }
