@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }}</title>
+  <title>{{ page_title or title }}</title>
   <style>
     :root {
       --bg: #f6f8ef;
@@ -407,6 +407,59 @@
       gap: 8px;
     }
 
+    .system-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .system-stat {
+      border: 1px solid #dce5c4;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .system-stat strong {
+      display: block;
+      font-size: 1.15rem;
+      margin-top: 4px;
+    }
+
+    .mount-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem;
+    }
+
+    .mount-table th,
+    .mount-table td {
+      padding: 9px 6px;
+      border-bottom: 1px solid #e4ead7;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .mount-table th {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .usage-bar {
+      min-width: 90px;
+      height: 7px;
+      margin-top: 5px;
+      background: #e4ead7;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .usage-bar span {
+      display: block;
+      height: 100%;
+      background: var(--accent-2);
+    }
+
     .device {
       border: 1px solid #dce5c4;
       border-radius: 12px;
@@ -516,7 +569,7 @@
 <body>
   <main class="layout">
     <section class="hero">
-      <h1 id="title">Home Dashboard</h1>
+      <h1 id="title">{{ page_title or 'Home Dashboard' }}</h1>
       <p>Startseite für Bookmarks, Netzwerkgeräte und Admin-Workflows.</p>
       <a href="/" class="hero-link">Zur Startseite mit Kacheln</a>
     </section>
@@ -581,8 +634,18 @@
     </section>
 
     <section class="panel" id="panel-devices">
+      {% if page_title %}
       <article class="card">
-        <h2>Geräte im Netzwerk</h2>
+        <h2>Systemübersicht</h2>
+        <div id="system-summary" class="system-summary"></div>
+      </article>
+      <article class="card">
+        <h2>Festplatten und Mounts</h2>
+        <div id="system-mounts"></div>
+      </article>
+      {% endif %}
+      <article class="card">
+        <h2>{{ page_title or 'Geräte im Netzwerk' }}</h2>
         <p class="small">Kombiniert manuell gepflegte Geräte mit Scan-Ergebnissen (ARP/Nmap).</p>
         <div class="toolbar">
           <button id="scan-devices" class="warn">Netzwerk-Scan starten</button>
@@ -628,6 +691,8 @@
 
   <script>
     const initialTab = {{ (initial_tab or 'bookmarks')|tojson }};
+    const pageTitle = {{ (page_title or '')|tojson }};
+    const systemPage = Boolean(pageTitle);
 
     const state = {
       bookmarks: [],
@@ -797,7 +862,7 @@
 
     async function loadSettings() {
       state.settings = await api('/api/settings/');
-      document.getElementById('title').textContent = state.settings.dashboard?.title || 'Home Dashboard';
+      document.getElementById('title').textContent = pageTitle || state.settings.dashboard?.title || 'Home Dashboard';
       document.getElementById('settings-json').value = JSON.stringify(state.settings, null, 2);
     }
 
@@ -1062,6 +1127,27 @@
         .join('');
     }
 
+    async function loadSystemOverview() {
+      if (!systemPage) return;
+      const data = await api('/api/system/');
+      const memory = data.memory || {};
+      const load = (data.load_average || []).join(' / ');
+      document.getElementById('system-summary').innerHTML = `
+        <div class="system-stat"><span class="small">Hostname</span><strong>${escapeHtml(data.hostname || '-')}</strong></div>
+        <div class="system-stat"><span class="small">CPU-Kerne</span><strong>${escapeHtml(data.cpu_count || 0)}</strong></div>
+        <div class="system-stat"><span class="small">Load Average</span><strong>${escapeHtml(load || '-')}</strong></div>
+        <div class="system-stat"><span class="small">RAM belegt</span><strong>${escapeHtml(memory.used || '-')} / ${escapeHtml(memory.total || '-')}</strong><span class="small">${escapeHtml(memory.used_percent ?? 0)} %</span></div>
+      `;
+
+      const mounts = data.mounts || [];
+      const topology = data.storage_topology || [];
+      document.getElementById('system-mounts').innerHTML = topology.length === 0
+        ? '<p class="small">Keine Mounts verfügbar.</p>'
+        : `<div style="overflow-x:auto"><table class="mount-table"><thead><tr><th>Mount</th><th>Quelle</th><th>Dateisystem</th><th>Device</th><th>Transport</th><th>Info</th></tr></thead><tbody>${topology.map((mount) => `
+          <tr><td>${escapeHtml(mount.mountpoint || '-')}</td><td>${escapeHtml(mount.source || '-')}</td><td>${escapeHtml(mount.filesystem || '-')}</td><td>${escapeHtml(mount.device || '-')}</td><td>${escapeHtml(mount.transport || '-')}</td><td>${escapeHtml(mount.info || '-')}</td></tr>
+        `).join('')}</tbody></table></div>`;
+    }
+
     async function boot() {
       activateTab(initialTab);
 
@@ -1289,6 +1375,7 @@
       await loadCategories();
       await loadBookmarks();
       await loadDevices();
+      await loadSystemOverview();
     }
 
     boot().catch((err) => setOutput(err.message));

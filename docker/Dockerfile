@@ -4,12 +4,14 @@ WORKDIR /app
 
 COPY backend /app/backend
 COPY data /app/data
+COPY scripts /app/scripts
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	git \
 	iputils-ping \
 	net-tools \
 	nmap \
+	util-linux \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt

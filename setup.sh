@@ -20,7 +20,8 @@ Optional:
 
 Was erstellt wird:
   - backend/                (Flask-App)
-  - data/                   (persistente JSON-Daten)
+  - data/                   (persistente JSON-Daten; vorhandene Daten bleiben erhalten)
+  - scripts/                (Storage-Übersicht)
   - Dockerfile
   - docker-compose.yml
   - .env
@@ -58,9 +59,14 @@ fi
 mkdir -p "$TARGET_DIR"
 
 echo "[1/5] Kopiere App-Dateien nach: $TARGET_DIR"
-mkdir -p "$TARGET_DIR/backend" "$TARGET_DIR/data"
+mkdir -p "$TARGET_DIR/backend" "$TARGET_DIR/data" "$TARGET_DIR/scripts"
 cp -a "$SOURCE_ROOT/backend/." "$TARGET_DIR/backend/"
-cp -a "$SOURCE_ROOT/data/." "$TARGET_DIR/data/"
+if find "$TARGET_DIR/data" -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+  echo "      Produktionsdaten vorhanden; data/ wird nicht überschrieben."
+else
+  cp -a "$SOURCE_ROOT/data/." "$TARGET_DIR/data/"
+fi
+cp -a "$SOURCE_ROOT/scripts/." "$TARGET_DIR/scripts/"
 
 echo "[2/5] Erzeuge Dockerfile"
 cat > "$TARGET_DIR/Dockerfile" <<'EOF'
@@ -70,12 +76,14 @@ WORKDIR /app
 
 COPY backend /app/backend
 COPY data /app/data
+COPY scripts /app/scripts
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     iputils-ping \
     net-tools \
-    nmap \
+  nmap \
+  util-linux \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
@@ -136,6 +144,8 @@ sed -i "s/__PGID__/${EXEC_GID}/" "$TARGET_DIR/.env"
 chown -R "${EXEC_UID}:${EXEC_GID}" "$TARGET_DIR"
 find "$TARGET_DIR" -type d -exec chmod 755 {} \;
 find "$TARGET_DIR" -type f -exec chmod 644 {} \;
+chmod +x "$TARGET_DIR/scripts/storage-report.sh"
+chmod +x "$TARGET_DIR/scripts/storage_topology.sh"
 
 echo "[5/5] Fertig"
 echo

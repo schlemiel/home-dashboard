@@ -3,11 +3,11 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: home-dashboard
+    container_name: ${DASHBOARD_CONTAINER_NAME:-home-dashboard-dev}
     environment:
       - TZ=${TZ:-Europe/Berlin}
     ports:
-      - "${DASHBOARD_PORT:-8088}:8088"
+      - "${DASHBOARD_PORT:-8089}:8088"
     volumes:
       - ../data:/app/data
       - ../backend/config:/app/backend/config

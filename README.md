@@ -48,7 +48,7 @@ DASHBOARD_NETWORK=your-existing-network
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --build
 ```
 
-The app will be available on `http://localhost:8088` (or your configured `DASHBOARD_PORT`).
+The production instance uses `http://localhost:8088`. The Dev Compose setup in this repository uses `http://localhost:8089` and the container name `home-dashboard-dev`.
 
 ### Directly with Python
 
@@ -61,6 +61,18 @@ python app.py
 ```
 
 The app is available on <http://localhost:8088>.
+
+## Storage-Übersicht als Skript
+
+Für eine tabellarische Übersicht aller Mounts mit Block-Device und erkannter
+Schnittstelle:
+
+```bash
+./scripts/storage-report.sh
+```
+
+Das Skript nutzt `findmnt`, `df` und optional `lsblk`/`udevadm` und erkennt
+unter anderem SATA, NVMe, USB, RAID, LVM, NFS und SMB.
 
 ## Project structure
 
